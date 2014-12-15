@@ -69,7 +69,9 @@ namespace CMT
         std::vector<std::pair<cv::KeyPoint, int> > m_activeKeypoints;
         std::vector<std::pair<cv::KeyPoint, int> > m_trackedKeyPoints;
 
-        int numInitialKeypoints;
+        std::vector<cv::Point2f> m_springs;
+
+        int m_numInitialKeypoints;
 
         cv::vector<cv::Point2f> m_votes;
 

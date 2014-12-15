@@ -92,7 +92,44 @@ void CMT::CMT::initialise(cv::Mat     &initialImageGray,
         }
 
         // Get all distances and angles between selected keypoints
+        computeSquareformDist(selectedKeypoints, m_squareFormDists);
+        computeSquareformAngle(selectedKeypoints, m_squareFormAngles);
 
+        // Compute the center of the selected keypoints
+        cv::Point2f center;
+        for (int i = 0; i < selectedKeypoints.size(); i++)
+        {
+            center += selectedKeypoints[i].pt;
+        }
+        center *= 1.0 / selectedKeypoints.size();
+
+        // Computer the relative position of the bounding box corners to the center
+        // of the selected keypoints
+        m_centerToTopLeft = cv::Point2f(boundingBox.tl().x, boundingBox.tl().y) - center;
+        m_centerToTopRight = cv::Point2f(boundingBox.br().x, boundingBox.tl().y) - center;
+        m_centerToBottomRight = cv::Point2f(boundingBox.br().x, boundingBox.br().y) - center;
+        m_centerToBottomLeft = cv::Point2f(boundingBox.tl().x, boundingBox.br().y) - center;
+
+        // Make selectedKeypoints (keypoints that lie in the initial bounding box)
+        // active and add class information
+        m_activeKeypoints = std::vector<std::pair<cv::KeyPoint, int> >();
+        for (int i = 0; i < selectedKeypoints.size(); i++)
+        {
+            m_activeKeypoints.push_back(std::make_pair(selectedKeypoints[i], i+1));
+        }
+
+        // Compute the relative positions of the keypoints to the center
+        m_springs = std::vector<cv::Point2f>();
+        for (int i = 0; i < selectedKeypoints.size(); i++)
+        {
+            m_springs.push_back(selectedKeypoints[i].pt - center);
+        }
+
+        // Store the initial image as the previous image for tracking
+        m_previousImageGray = initialImageGray.clone();
+
+        // Remember the number of initial keypoints
+        m_numInitialKeypoints = selectedKeypoints.size();
 
         result = CMT_SUCCESS;
     }
@@ -115,5 +152,4 @@ void CMT::CMT::estimate(const std::vector<std::pair<cv::KeyPoint, int> > &keypoi
 
 void CMT::CMT::processFrame(cv::Mat imageGray)
 {
-
 }
