@@ -28,8 +28,10 @@ CMT::CMT::~CMT()
 
 }
 
-void CMT::CMT::initialise(cv::Mat &initialImageGray,
-                          cv::Rect boundingBox)
+void CMT::CMT::initialise(cv::Mat     &initialImageGray,
+                          cv::Rect    boundingBox,
+                          int         &result,
+                          std::string &errorMessage)
 {
     m_detector = cv::FeatureDetector::create(m_detectorType);
     m_descriptorExtractor = cv::DescriptorExtractor::create(m_descriptorType);
@@ -43,9 +45,62 @@ void CMT::CMT::initialise(cv::Mat &initialImageGray,
     std::vector<cv::KeyPoint> selectedKeypoints;
     std::vector<cv::KeyPoint> backgroundKeypoints;
 
+    inRect(boundingBox, keypoints, selectedKeypoints, backgroundKeypoints);
+
+    if (selectedKeypoints.size() > 0)
+    {
+        // Describe initial keypoints
+        // Describe selected keypoints
+        cv::Mat selectedFeatures;
+        m_descriptorExtractor->compute(initialImageGray, selectedKeypoints, selectedFeatures);
+
+        // Describe background keypoints
+        cv::Mat backgroundFeatures;
+        m_descriptorExtractor->compute(initialImageGray, backgroundKeypoints, backgroundFeatures);
+
+        // Insert selected and background features into a features database
+        int maxCols = (backgroundFeatures.cols > selectedFeatures.cols) ? (backgroundFeatures.cols) : (selectedFeatures.cols);
+        cv::Mat featuresDatabase = cv::Mat((backgroundFeatures.rows+selectedFeatures.rows), maxCols, selectedFeatures.type());
+        if (backgroundFeatures.cols > 0)
+        {
+            backgroundFeatures.copyTo(featuresDatabase(cv::Rect(
+                                0, 0, backgroundFeatures.cols,
+                                backgroundFeatures.rows)));
+        }
+        if (selectedFeatures.cols > 0)
+        {
+            selectedFeatures.copyTo(featuresDatabase(cv::Rect(
+                                0, backgroundFeatures.rows,
+                                selectedFeatures.cols,
+                                selectedFeatures.rows)));
+        }
+        m_selectedFeatures = selectedFeatures.clone();
+        m_featuresDatabase = featuresDatabase.clone();
+
+        // Assign classes to detected keypoints
+        // For selected keypoints start from 1 and increase for each keypoint
+        // For background keypoints class is 0
+        m_classesDatabase = std::vector<int>();
+        for (int i = 0; i < backgroundKeypoints.size(); i++)
+        {
+            m_classesDatabase.push_back(0);
+        }
+        for (int i = 0; i < selectedKeypoints.size(); i++)
+        {
+            m_selectedClasses.push_back(i+1);
+            m_classesDatabase.push_back(i+1);
+        }
+
+        // Get all distances and angles between selected keypoints
 
 
-    // Describe initial keypoints
+        result = CMT_SUCCESS;
+    }
+    else {
+        result = CMT_FAILURE;
+        errorMessage = "ERROR: No keypoints found in selection";
+        return;
+    }
 
 }
 

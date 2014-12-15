@@ -1,13 +1,14 @@
 #ifndef CMT_H
 #define CMT_H
 
-#include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/features2d/features2d.hpp>
 #include <vector>
 #include <string>
 
 namespace CMT
 {
+    #define CMT_SUCCESS 1
+    #define CMT_FAILURE 0
 
     class CMT
     {
@@ -24,9 +25,10 @@ namespace CMT
             float       threshRatio         // Threshold for the ratio of consensus cluster
             );
         ~CMT();
-        void initialise(cv::Mat  &initialImageGray,  // Initial grayscale frame
-                        cv::Rect boundingBox        // Target bounding box
-                        );
+        void initialise(cv::Mat     &initialImageGray,  // Initial grayscale frame
+                        cv::Rect    boundingBox,        // Target bounding box
+                        int         &result,
+                        std::string &errorMessage);
         void processFrame(cv::Mat imageGray);
         void estimate(const std::vector<std::pair<cv::KeyPoint, int> > &keypointsIn,
                       cv::Point2f                                      &center,
