@@ -1,4 +1,5 @@
 #include <cmath>
+#include <opencv2/video/tracking.hpp>
 #include "utils.h"
 
 void CMT::inRect(const cv::Rect                  rect,
@@ -85,5 +86,68 @@ void computeSquareformAngle(std::vector<cv::KeyPoint>        &keypoints,
             angles.push_back(computeAngle(keypoints[i], keypoints[j]));
         }
         squareformAngles.push_back(angles);
+    }
+}
+
+void trackLK(cv::Mat                                    imageGray,
+             cv::Mat                                    previousImageGray,
+             std::vector<std::pair<cv::KeyPoint, int> > &keypoints,
+             std::vector<std::pair<cv::KeyPoint, int> > &trackedKeypoints,
+             int                                        threshFB)
+{
+    // First check if there are any keypoints in the keypoints vector
+    if (keypoints.size() == 0)
+    {
+        trackedKeypoints = std::vector<std::pair<cv::KeyPoint, int> >();
+        return;
+    }
+
+    // Extract the points from the input keypoints
+    std::vector<cv::Point2f> points;
+    for (int i = 0; i < keypoints.size(); i++)
+    {
+        points.push_back(keypoints[i].first.pt);
+    }
+
+    std::vector<cv::Point2f> nextPoints;
+    std::vector<uchar>       fStatus;
+    std::vector<float>       fError;
+    // Calculate forward optical flow
+    cv::calcOpticalFlowPyrLK(previousImageGray, imageGray, points, nextPoints, fStatus, fError);
+
+    std::vector<cv::Point2f> prevPoints;
+    std::vector<uchar>       bStatus;
+    std::vector<float>       bError;
+    // Calculate backward optical flow
+    cv::calcOpticalFlowPyrLK(imageGray, previousImageGray, nextPoints, prevPoints, bStatus, bError);
+
+    // Calculate forward-backward error
+    std::vector<float> fbError;
+    for (int i = 0; i < keypoints.size(); i++)
+    {
+        cv::Point2f vec;
+        vec = prevPoints[i] - points[i];
+        fbError.push_back(sqrt(vec.dot(vec)));
+    }
+
+    // Set status of tracked keypoints depending on forward-backward
+    // error and lukas-kanade error
+    std::vector<uchar> status;
+    for (int i = 0; i < keypoints.size(); i++)
+    {
+        status.push_back((fbError[i] <= threshFB) & fStatus[i]);
+    }
+
+    // Keep only the keypoints that are successfully tracked
+    // and have relatively small forward-backward error
+    trackedKeypoints = std::vector<std::pair<cv::KeyPoint, int> >();
+    for (int i = 0; i < keypoints.size(); i++)
+    {
+        if (status[i])
+        {
+            std::pair<cv::KeyPoint, int> point = keypoints[i];
+            point.first.pt = nextPoints[i];
+            trackedKeypoints.push_back(point);
+        }
     }
 }

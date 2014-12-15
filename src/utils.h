@@ -41,6 +41,16 @@ namespace CMT
      */
     void computeSquareformAngle(std::vector<cv::KeyPoint>        &keypoints,
                                 std::vector<std::vector<float> > &squareformAngles);
+
+    /*
+     * trackLK: tracks keypoints between frames using
+     * Lukas-Kanade pyramidal optical flow method
+     */
+    void trackLK(cv::Mat                                    imageGray,
+                 cv::Mat                                    previousImageGray,
+                 std::vector<std::pair<cv::KeyPoint, int> > &keypoints,
+                 std::vector<std::pair<cv::KeyPoint, int> > &trackedKeypoints,
+                 int                                        threshFB=20);
 }
 
 #endif // UTILS_H
