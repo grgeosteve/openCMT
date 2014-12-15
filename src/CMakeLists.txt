@@ -6,5 +6,5 @@ else(BUILD_CMT_SHARED)
     set(CMT_LIBRARY_TYPE STATIC)
 endif(BUILD_CMT_SHARED)
 
-add_library(${PROJECT_NAME} ${CMT_LIBRARY_TYPE} tools.cpp cluster.cpp cmt.cpp)
+add_library(${PROJECT_NAME} ${CMT_LIBRARY_TYPE} utils.cpp cluster.cpp cmt.cpp)
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
