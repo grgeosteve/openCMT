@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 
-project(CMT)
+project(openCMT)
 set(CMT_VERSION_MAJOR 1)
 set(CMT_VERSION_MINOR 0)
 
