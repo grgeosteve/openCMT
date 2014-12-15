@@ -17,6 +17,30 @@ namespace CMT
                 std::vector<cv::KeyPoint>       &in,
                 std::vector<cv::KeyPoint>       &out);
 
+    /*
+     * computeDistance: computes the Euclidean distance between two
+     * keypoints
+     */
+    float computeDistance(cv::KeyPoint kp1,
+                          cv::KeyPoint kp2);
+
+    /*
+     * computeAngle: computes the angle betwen two keypoints
+     */
+    float computeAngle(cv::KeyPoint kp1,
+                       cv::KeyPoint kp2);
+
+    /*
+     * computeSquareformDist: computes a squareform distance table
+     */
+    void computeSquareformDist(std::vector<cv::KeyPoint>        &keypoints,
+                               std::vector<std::vector<float> > &squareformDist);
+
+    /*
+     * computeSquareformAngle: computes a squareform angle table
+     */
+    void computeSquareformAngle(std::vector<cv::KeyPoint>        &keypoints,
+                                std::vector<std::vector<float> > &squareformAngles);
 }
 
 #endif // UTILS_H
